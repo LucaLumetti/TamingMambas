@@ -4,6 +4,7 @@ from batchgenerators.utilities.file_and_folder_operations import join
 matplotlib.use('agg')
 import seaborn as sns
 import matplotlib.pyplot as plt
+import wandb
 
 
 class nnUNetLogger(object):
@@ -101,3 +102,14 @@ class nnUNetLogger(object):
 
     def load_checkpoint(self, checkpoint: dict):
         self.my_fantastic_logging = checkpoint
+
+    def log_to_wandb(self):
+        epoch = min([len(i) for i in self.my_fantastic_logging.values()]) - 1  # lists of epoch 0 have len 1
+        wandb.log({
+            'Val/Loss': self.my_fantastic_logging['val_losses'][epoch + 1],
+            'Train/Loss': self.my_fantastic_logging['train_losses'][epoch + 1],
+            'Train/Dice': self.my_fantastic_logging['ema_fg_dice'][epoch + 1],
+            'Train/EMA_Dice': self.my_fantastic_logging['mean_fg_dice'][epoch + 1],
+            'Train/lr': self.my_fantastic_logging['lrs'][epoch + 1],
+        })
+

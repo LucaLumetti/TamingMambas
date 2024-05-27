@@ -1051,6 +1051,7 @@ class nnUNetTrainer(object):
 
         if self.local_rank == 0:
             self.logger.plot_progress_png(self.output_folder)
+            self.logger.log_to_wandb()
 
         self.current_epoch += 1
 

@@ -13,6 +13,7 @@ from nnunetv2.training.nnUNetTrainer.nnUNetTrainer import nnUNetTrainer
 from nnunetv2.utilities.dataset_name_id_conversion import maybe_convert_to_dataset_name
 from nnunetv2.utilities.find_class_by_name import recursive_find_python_class
 from torch.backends import cudnn
+import wandb
 
 
 def find_free_network_port() -> int:
@@ -264,6 +265,15 @@ def run_training_entry():
         device = torch.device('cuda')
     else:
         device = torch.device('mps')
+
+    run = wandb.init(
+        project="MambaSurvey",
+        name=f'Dataset{args.dataset_name_or_id}_{args.tr}', 
+        entity="lucalumetti",
+        config=config,
+    )
+
+    run.tags += [args.dataset_name_or_id, args.tr]
 
     run_training(args.dataset_name_or_id, args.configuration, args.fold, args.tr, args.p, args.pretrained_weights,
                  args.num_gpus, args.use_compressed, args.npz, args.c, args.val, args.disable_checkpointing, args.val_best,
