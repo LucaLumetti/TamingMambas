@@ -106,10 +106,11 @@ class nnUNetLogger(object):
     def log_to_wandb(self):
         epoch = min([len(i) for i in self.my_fantastic_logging.values()]) - 1  # lists of epoch 0 have len 1
         wandb.log({
-            'Val/Loss': self.my_fantastic_logging['val_losses'][epoch + 1],
-            'Train/Loss': self.my_fantastic_logging['train_losses'][epoch + 1],
-            'Train/Dice': self.my_fantastic_logging['ema_fg_dice'][epoch + 1],
-            'Train/EMA_Dice': self.my_fantastic_logging['mean_fg_dice'][epoch + 1],
-            'Train/lr': self.my_fantastic_logging['lrs'][epoch + 1],
+            'Val/Loss': self.my_fantastic_logging['val_losses'][epoch],
+            'Train/Loss': self.my_fantastic_logging['train_losses'][epoch],
+            'Train/Dice': self.my_fantastic_logging['mean_fg_dice'][epoch],
+            'Train/EMA_Dice': self.my_fantastic_logging['ema_fg_dice'][epoch],
+            'Train/lr': self.my_fantastic_logging['lrs'][epoch],
+            'Epoch': epoch
         })
 

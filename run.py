@@ -48,8 +48,14 @@ if dataset_dir_name is None:
     print(f'I cannot find the dataset folder. I looked for "Dataset{int(args.dataset):03d}*" inside {raws_path}\nFolders: {datasets}')
     sys.exit(1)
 
+imagesTs = os.path.join(raws_path, dataset_dir_name, 'imagesTs')
+inferTs = os.path.join(raws_path, dataset_dir_name, f'inferTs_{args.model}')
 config_results = os.path.join(results_path, dataset_dir_name, subfolder_name, f'fold_{args.fold}')
 checkpoint_final_path = os.path.join(config_results, 'checkpoint_final.pth')
+
+continue_training = ""
+if os.path.exists(config_results):
+    continue_training = "--c"
 
 if current_hostname in ailb_cluster:
     # Configuration specific to AImageLab cluster
@@ -65,8 +71,8 @@ else:
     cluster = "Aries"
     slurm_partition = "ice4hpc"
     slurm_account = "cgr"
-    slurm_time = "48:00:00"
-    slurm_gres = "gpu:a100:1"
+    slurm_time = "00:10:00"
+    slurm_gres = "gpu:1g.20gb:1"
 
 job_name = f"{args.model}_{args.dataset}_{args.fold}_nnUNet"
 if job_name[0] == '_':
@@ -77,7 +83,7 @@ print(f"Running model {args.model} on dataset {args.dataset} - jobname: {job_nam
 time.sleep(5)
 
 random_string = ''.join(random.choices(string.ascii_letters + string.digits, k=4))
-sbatch_file = f"/tmp/{job_name}.sbatch"
+sbatch_file = f"sbatch_files/{job_name}.sbatch"
 
 # Common configuration for both clusters
 with open(sbatch_file, 'w') as f:
@@ -91,31 +97,47 @@ with open(sbatch_file, 'w') as f:
     f.write(f"#SBATCH --gres={slurm_gres}\n")
     f.write(f"#SBATCH --partition={slurm_partition}\n")
     f.write(f"#SBATCH --account={slurm_account}\n")
+    f.write(f"#SBATCH --signal=B:SIGUSR1@10\n")
 
     if current_hostname in ailb_cluster:
         f.write("#SBATCH --constraint=gpu_A40_48G\n")
 
+    f.write('\n')
     f.write((
         'handle_sigusr() {\n'
-            f'if [[ -f "{checkpoint_final_path} ]]; then\n'
-                'echo "Found checkpoint_final.pth, the job has completed"\n'
-                'sbatch $0\n'
-                'rm -f "$flag_file"\n'
-            'fi\n'
-            'exit 0\n'
-        '}'
+            f'\tif [[ -f "{checkpoint_final_path}" ]]; then\n'
+                '\t\techo "Found checkpoint_final.pth, the job has completed"\n'
+            f'\telse\n'
+                '\t\techo "checkpoint_final.pth not found, resubmitting the job"\n'
+                '\t\tsbatch $0\n'
+            '\tfi\n'
+            '\texit 0\n'
+        '}\n\n'
+        'trap \'handle_sigusr\' USR1\n'
     ))
 
-    f.write(f"source {venv_path}\n")
-    f.write(f"srun nnUNetv2_train {args.dataset} 3d_fullres {args.fold} -tr nnUNetTrainer{args.model} -c &\n")
+    f.write(f"source {venv_path}\n\n")
+    f.write(f"srun nnUNetv2_train {args.dataset} 3d_fullres {args.fold} -tr nnUNetTrainer{args.model} {continue_training} &\n")
+    # f.write(f"srun sleep 120 &\n")
+    f.write(f"echo Waiting...\n")
     f.write("wait\n")
-    # f.write(f"srun nnUNetv2_predict -i data/nnUNet_raw/Dataset027_ACDC/imagesTs -o data/void -d 1 -tr nnUNetTrainer{args.model} -c 3d_fullres -f 0 -chk checkpoint_latest.pth\n")
+    f.write((
+        f'if [[ -f "{checkpoint_final_path}" ]]; then\n'
+            f'\tsrun nnUNetv2_predict -i {imagesTs} -o {inferTs} -d {args.dataset} -tr nnUNetTrainer{args.model} -c 3d_fullres -f {args.fold} -chk checkpoint_final.pth\n'
+        f'else\n'
+            f'echo "Could not find checkpoint_final, maybe the train has crashed"\n'
+        f'fi\n'
+    ))
 
-print(f"Submitted sbatch file {sbatch_file}")
 
 if args.debug:
-    print("DEBUG MODE, the content of the sbatch file is:")
+    print("DEBUG MODE, file has not been sbatched, the content of the sbatch file is:")
     with open(sbatch_file, 'r') as f:
         print(f.read())
-
     os.remove(sbatch_file)
+else:
+    subprocess.call(f"sbatch {sbatch_file}", shell=True)
+    print(f"Submitted sbatch file {sbatch_file}")
+    subprocess.call(f"squeue --me", shell=True)
+    subprocess.call(f"squeue --partition=ice4hpc", shell=True)
+

@@ -268,12 +268,12 @@ def run_training_entry():
 
     run = wandb.init(
         project="MambaSurvey",
-        name=f'Dataset{args.dataset_name_or_id}_{args.tr}', 
-        entity="lucalumetti",
-        config=config,
+        name=f'Dataset{int(args.dataset_name_or_id):03d}_{args.tr}_Fold{args.fold}', 
+        entity="maxillo",
+        config=args,
+        id=f'Dataset{int(args.dataset_name_or_id):03d}_{args.tr}_Fold{args.fold}', 
+        resume=f'allow'
     )
-
-    run.tags += [args.dataset_name_or_id, args.tr]
 
     run_training(args.dataset_name_or_id, args.configuration, args.fold, args.tr, args.p, args.pretrained_weights,
                  args.num_gpus, args.use_compressed, args.npz, args.c, args.val, args.disable_checkpointing, args.val_best,
