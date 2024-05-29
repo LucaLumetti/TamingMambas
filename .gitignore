@@ -1,4 +1,4 @@
-wand
+wandb
 slurm_out
 sbatch_files
 data/

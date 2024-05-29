@@ -71,7 +71,7 @@ else:
     cluster = "Aries"
     slurm_partition = "ice4hpc"
     slurm_account = "cgr"
-    slurm_time = "00:10:00"
+    slurm_time = "24:00:00"
     slurm_gres = "gpu:1g.20gb:1"
 
 job_name = f"{args.model}_{args.dataset}_{args.fold}_nnUNet"
