@@ -7,6 +7,8 @@ import string
 import argparse
 import socket
 
+SLEEP_SECONDS = 2
+
 # Check if virtualenv is activated
 if subprocess.call("command -v nnUNetv2_train > /dev/null 2>&1", shell=True) != 0:
     print("nnUNetv2_train not found, please activate the environment")
@@ -19,6 +21,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('-d', '--dataset', required=True, help='Dataset name')
 parser.add_argument('-m', '--model', required=True, help='Model name')
 parser.add_argument('-f', '--fold', required=True, help='Fold number')
+parser.add_argument('--boost', required=False, default=False, action='store_true')
 parser.add_argument('--debug', required=False, default=False, action='store_true')
 args = parser.parse_args()
 
@@ -59,15 +62,18 @@ if os.path.exists(config_results):
 
 if current_hostname in ailb_cluster:
     # Configuration specific to AImageLab cluster
-    print("Detected AImageLab Cluster, please press Ctrl+C if I'm wrong. Running sbatch in 5 seconds")
+    print(f"Detected AImageLab Cluster, please press Ctrl+C if I'm wrong. Running sbatch in {SLEEP_SECONDS} seconds")
     cluster = "AImageLab"
-    slurm_partition = "boost_usr_prod"
     slurm_account = "grana_maxillo"
-    slurm_time = "12:00:00"
+    slurm_partition = "all_usr_prod"
+    slurm_time = "24:00:00"
     slurm_gres = "gpu:1"
+    if args.boost:
+        slurm_partition = "boost_usr_prod"
+        slurm_time = "12:00:00"
 else:
     # Configuration specific to Aries cluster
-    print("Detected Aries Cluster, please press Ctrl+C if I'm wrong. Running sbatch in 5 seconds")
+    print(f"Detected Aries Cluster, please press Ctrl+C if I'm wrong. Running sbatch in {SLEEP_SECONDS} seconds")
     cluster = "Aries"
     slurm_partition = "ice4hpc"
     slurm_account = "cgr"
@@ -80,10 +86,12 @@ if job_name[0] == '_':
 print(f"Cluster: {cluster}")
 print(f"Partition: {slurm_partition}")
 print(f"Running model {args.model} on dataset {args.dataset} - jobname: {job_name}")
-time.sleep(5)
+time.sleep(SLEEP_SECONDS)
 
 random_string = ''.join(random.choices(string.ascii_letters + string.digits, k=4))
 sbatch_file = f"sbatch_files/{job_name}.sbatch"
+
+os.makedirs('sbatch_files', exist_ok=True)
 
 # Common configuration for both clusters
 with open(sbatch_file, 'w') as f:
@@ -99,7 +107,7 @@ with open(sbatch_file, 'w') as f:
     f.write(f"#SBATCH --account={slurm_account}\n")
     f.write(f"#SBATCH --signal=B:SIGUSR1@10\n")
 
-    if current_hostname in ailb_cluster:
+    if current_hostname in ailb_cluster and args.boost:
         f.write("#SBATCH --constraint=gpu_A40_48G\n")
 
     f.write('\n')
