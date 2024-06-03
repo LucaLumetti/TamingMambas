@@ -57,7 +57,7 @@ config_results = os.path.join(results_path, dataset_dir_name, subfolder_name, f'
 checkpoint_final_path = os.path.join(config_results, 'checkpoint_final.pth')
 
 continue_training = ""
-if os.path.exists(config_results):
+if os.path.exists(config_results) or True:
     continue_training = "--c"
 
 if current_hostname in ailb_cluster:

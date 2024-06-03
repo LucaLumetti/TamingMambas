@@ -272,7 +272,8 @@ def run_training_entry():
         entity="maxillo",
         config=args,
         id=f'Dataset{int(args.dataset_name_or_id):03d}_{args.tr}_Fold{args.fold}', 
-        resume=f'allow'
+        resume=f'allow',
+        tags=[socket.gethostname()]
     )
 
     run_training(args.dataset_name_or_id, args.configuration, args.fold, args.tr, args.p, args.pretrained_weights,
