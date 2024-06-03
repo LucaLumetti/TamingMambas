@@ -428,6 +428,10 @@ class nnUNetTrainer(object):
         self.print_to_log_file(f'do_dummy_2d_data_aug: {do_dummy_2d_data_aug}')
         self.inference_allowed_mirroring_axes = mirror_axes
 
+        if 'ToothFairy' in self.dataset_json['name']:
+            mirror_axes = None
+            self.inference_allowed_mirroring_axes = None
+
         return rotation_for_DA, do_dummy_2d_data_aug, initial_patch_size, mirror_axes
 
     def print_to_log_file(self, *args, also_print_to_console=True, add_timestamp=True):
