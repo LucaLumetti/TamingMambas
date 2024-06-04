@@ -124,6 +124,7 @@ with open(sbatch_file, 'w') as f:
         'trap \'handle_sigusr\' USR1\n'
     ))
 
+    f.write(f"export WANDB__SERVICE_WAIT=300\n")
     f.write(f"source {venv_path}\n\n")
     f.write(f"srun nnUNetv2_train {args.dataset} 3d_fullres {args.fold} -tr nnUNetTrainer{args.model} {continue_training} &\n")
     # f.write(f"srun sleep 120 &\n")
