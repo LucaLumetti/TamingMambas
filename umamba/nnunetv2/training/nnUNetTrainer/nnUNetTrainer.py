@@ -428,7 +428,7 @@ class nnUNetTrainer(object):
         self.print_to_log_file(f'do_dummy_2d_data_aug: {do_dummy_2d_data_aug}')
         self.inference_allowed_mirroring_axes = mirror_axes
 
-        if 'ToothFairy' in self.dataset_json['name']:
+        if 'name' in self.dataset_json.keys() and 'ToothFairy' in self.dataset_json['name']:
             mirror_axes = None
             self.inference_allowed_mirroring_axes = None
 
