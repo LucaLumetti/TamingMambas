@@ -250,6 +250,7 @@ def run_training_entry():
                     help="Use this to set the device the training should run with. Available options are 'cuda' "
                          "(GPU), 'cpu' (CPU) and 'mps' (Apple M1/M2). Do NOT use this to set which GPU ID! "
                          "Use CUDA_VISIBLE_DEVICES=X nnUNetv2_train [...] instead!")
+    parser.add_argument("--debug", action='store_true', help="debug, no wandb")
     args = parser.parse_args()
 
     assert args.device in ['cpu', 'cuda', 'mps'], f'-device must be either cpu, mps or cuda. Other devices are not tested/supported. Got: {args.device}.'
@@ -266,6 +267,8 @@ def run_training_entry():
     else:
         device = torch.device('mps')
 
+    if args.debug:
+        os.environ['WANDB_DISABLED'] = 'true'
     run = wandb.init(
         project="MambaSurvey",
         name=f'Dataset{int(args.dataset_name_or_id):03d}_{args.tr}_Fold{args.fold}', 

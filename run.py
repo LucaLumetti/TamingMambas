@@ -21,9 +21,15 @@ parser = argparse.ArgumentParser()
 parser.add_argument('-d', '--dataset', required=True, help='Dataset name')
 parser.add_argument('-m', '--model', required=True, help='Model name')
 parser.add_argument('-f', '--fold', required=True, help='Fold number')
+parser.add_argument('-c', '--config', required=True, help='Train Config: 2d, 3d_fullres')
+parser.add_argument('--high', required=False, default=False, action='store_true')
 parser.add_argument('--boost', required=False, default=False, action='store_true')
 parser.add_argument('--debug', required=False, default=False, action='store_true')
 args = parser.parse_args()
+
+if args.boost and args.high:
+    print("Cannot set --boost and --high")
+    sys.exit(1)
 
 current_hostname = socket.gethostname()
 current_path = os.path.realpath(os.path.dirname(__file__))
@@ -33,7 +39,7 @@ raws_path = os.path.join(current_path, 'data', 'nnUNet_raw')
 results_path = os.path.join(current_path, 'data', 'nnUNet_results')
 preprocessed_path = os.path.join(current_path, 'data', 'nnUNet_preprocessed')
 
-subfolder_name = f'nnUNetTrainer{args.model}__nnUNetPlans__3d_fullres'
+subfolder_name = f'nnUNetTrainer{args.model}__nnUNetPlans__{args.config}'
 
 
 datasets = os.listdir(raws_path)
@@ -109,6 +115,8 @@ with open(sbatch_file, 'w') as f:
 
     if current_hostname in ailb_cluster and args.boost:
         f.write("#SBATCH --constraint=gpu_A40_48G\n")
+    if current_hostname in ailb_cluster and args.high:
+        f.write("#SBATCH --constraint=\"gpu_RTX6000_24G|gpu_RTXA5000_24G\" ")
 
     f.write('\n')
     f.write((
@@ -126,13 +134,13 @@ with open(sbatch_file, 'w') as f:
 
     f.write(f"export WANDB__SERVICE_WAIT=300\n")
     f.write(f"source {venv_path}\n\n")
-    f.write(f"srun nnUNetv2_train {args.dataset} 3d_fullres {args.fold} -tr nnUNetTrainer{args.model} {continue_training} &\n")
+    f.write(f"srun nnUNetv2_train {args.dataset} {args.config} {args.fold} -tr nnUNetTrainer{args.model} {continue_training} &\n")
     # f.write(f"srun sleep 120 &\n")
     f.write(f"echo Waiting...\n")
     f.write("wait\n")
     f.write((
         f'if [[ -f "{checkpoint_final_path}" ]]; then\n'
-            f'\tsrun nnUNetv2_predict -i {imagesTs} -o {inferTs} -d {args.dataset} -tr nnUNetTrainer{args.model} -c 3d_fullres -f {args.fold} -chk checkpoint_final.pth\n'
+            f'\tsrun nnUNetv2_predict -i {imagesTs} -o {inferTs} -d {args.dataset} -tr nnUNetTrainer{args.model} -c {args.config} -f {args.fold} -chk checkpoint_final.pth\n'
         f'else\n'
             f'echo "Could not find checkpoint_final, maybe the train has crashed"\n'
         f'fi\n'
