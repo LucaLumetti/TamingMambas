@@ -1,0 +1,16 @@
+{
+
+    "configurations": [
+      {
+        "name": "Python",
+        "type": "debugpy",
+        "request": "launch",
+        "program": "/work/grana_maxillo/Mamba3DMedModels/umamba/nnunetv2/run/run_training.py",
+        "console": "integratedTerminal",
+        "justMyCode": false,
+        "args": ["90", "3d_fullres", "0", "-tr", "nnUNetTrainerTMamba3D", "--debug"],
+        "env": {"PYTHONPATH":"${workspaceRoot}"},
+        "cwd":"${workspaceFolder}"
+      }
+    ]
+  }
