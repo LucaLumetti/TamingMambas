@@ -807,7 +807,10 @@ class nnUNetTrainer(object):
         if self.is_ddp:
             self.network.module.decoder.deep_supervision = enabled
         else:
-            self.network.decoder.deep_supervision = enabled
+            try:
+                self.network.decoder.deep_supervision = enabled
+            except:
+                pass
 
     def on_train_start(self):
         if not self.was_initialized:
@@ -877,7 +880,8 @@ class nnUNetTrainer(object):
 
     def on_train_epoch_start(self):
         self.network.train()
-        self.lr_scheduler.step(self.current_epoch)
+        if self.lr_scheduler is not None:
+            self.lr_scheduler.step(self.current_epoch)
         self.print_to_log_file('')
         self.print_to_log_file(f'Epoch {self.current_epoch}')
         self.print_to_log_file(

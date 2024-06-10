@@ -1,3 +1,6 @@
+bash.sh
+.idea
+.vscode
 wandb
 slurm_out
 sbatch_files

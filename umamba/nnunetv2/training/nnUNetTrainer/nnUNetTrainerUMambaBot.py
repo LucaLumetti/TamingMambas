@@ -1,11 +1,16 @@
 from nnunetv2.training.nnUNetTrainer.nnUNetTrainer import nnUNetTrainer
 from nnunetv2.utilities.plans_handling.plans_handler import ConfigurationManager, PlansManager
+import torch
 from torch import nn
 from nnunetv2.nets.UMambaBot_3d import get_umamba_bot_3d_from_plans
 from nnunetv2.nets.UMambaBot_2d import get_umamba_bot_2d_from_plans
 
 
 class nnUNetTrainerUMambaBot(nnUNetTrainer):
+    def __init__(self, plans: dict, configuration: str, fold: int, dataset_json: dict, unpack_dataset: bool = True,
+                 device: torch.device = torch.device('cuda')):
+        super().__init__(plans, configuration, fold, dataset_json, unpack_dataset, device)
+        self.num_epochs = 300
     @staticmethod
     def build_network_architecture(plans_manager: PlansManager,
                                    dataset_json,
