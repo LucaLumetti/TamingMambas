@@ -1,0 +1,38 @@
+Traceback (most recent call last):
+  File "/work/grana_maxillo/Mamba3DMedModels/umamba/nnunetv2/nets/vmamba/main.py", line 26, in <module>
+    out = model(x)
+  File "/work/grana_maxillo/Mamba3DMedModels/venv/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1501, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/work/grana_maxillo/Mamba3DMedModels/umamba/nnunetv2/nets/vmamba/vmamba.py", line 1521, in forward
+    o, x = layer_forward(layer, x)  # (B, H, W, C)
+  File "/work/grana_maxillo/Mamba3DMedModels/umamba/nnunetv2/nets/vmamba/vmamba.py", line 1514, in layer_forward
+    x = l.blocks(x)
+  File "/work/grana_maxillo/Mamba3DMedModels/venv/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1501, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/work/grana_maxillo/Mamba3DMedModels/venv/lib/python3.10/site-packages/torch/nn/modules/container.py", line 217, in forward
+    input = module(input)
+  File "/work/grana_maxillo/Mamba3DMedModels/venv/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1501, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/work/grana_maxillo/Mamba3DMedModels/umamba/nnunetv2/nets/vmamba/vmamba.py", line 1139, in forward
+    return self._forward(input)
+  File "/work/grana_maxillo/Mamba3DMedModels/umamba/nnunetv2/nets/vmamba/vmamba.py", line 1127, in _forward
+    x = x + self.drop_path(self.op(self.norm(x)))
+  File "/work/grana_maxillo/Mamba3DMedModels/venv/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1501, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/work/grana_maxillo/Mamba3DMedModels/umamba/nnunetv2/nets/vmamba/vmamba.py", line 726, in forwardv2
+    y = self.forward_core(x)
+  File "/work/grana_maxillo/Mamba3DMedModels/umamba/nnunetv2/nets/vmamba/vmamba.py", line 695, in forward_corev2
+    ys: torch.Tensor = selective_scan(
+  File "/work/grana_maxillo/Mamba3DMedModels/umamba/nnunetv2/nets/vmamba/vmamba.py", line 588, in selective_scan
+    return SelectiveScan.apply(u, delta, A, B, C, D, delta_bias, delta_softplus, -1, -1, ssoflex)
+  File "/work/grana_maxillo/Mamba3DMedModels/venv/lib/python3.10/site-packages/torch/autograd/function.py", line 506, in apply
+    return super().apply(*args, **kwargs)  # type: ignore[misc]
+  File "/work/grana_maxillo/Mamba3DMedModels/venv/lib/python3.10/site-packages/torch/cuda/amp/autocast_mode.py", line 98, in decorate_fwd
+    return fwd(*args, **kwargs)
+  File "/work/grana_maxillo/Mamba3DMedModels/umamba/nnunetv2/nets/vmamba/csms6s.py", line 278, in forward
+    out, x, *rest = selective_scan_cuda_oflex.fwd(u, delta, A, B, C, D, delta_bias, delta_softplus, 1, oflex)
+RuntimeError: CUDA error: no kernel image is available for execution on the device
+CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.
+For debugging consider passing CUDA_LAUNCH_BLOCKING=1.
+Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.
+
