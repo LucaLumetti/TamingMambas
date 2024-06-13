@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from itertools import chain
-from vmamba import Backbone_VSSM
+from .vmamba import Backbone_VSSM
 from nnunetv2.utilities.plans_handling.plans_handler import ConfigurationManager, PlansManager
 
 
@@ -71,15 +71,16 @@ class FPN_fuse(nn.Module):
 
 class SegVMamba(nn.Module):
     # Implementing only the object path
-    def __init__(self, num_classes: int, backbone: Backbone_VSSM, in_channels=3, pretrained=True, use_aux=True,
-                 fpn_out=256, **_):
+    def __init__(self, num_classes: int, backbone, in_channels=3, pretrained=True, use_aux=True,
+                 fpn_out=256):
         super(SegVMamba, self).__init__()
 
-        if backbone == 'resnet34' or backbone == 'resnet18':
+        feature_channels = [128, 256, 512, 1024]
+        '''if backbone == 'resnet34' or backbone == 'resnet18':
             feature_channels = [64, 128, 256, 512]
         else:
-            feature_channels = [256, 512, 1024, 2048]
-        self.backbone = Backbone_VSSM()
+            feature_channels = [256, 512, 1024, 2048]'''
+        self.backbone = backbone
         self.PPN = PSPModule(feature_channels[-1])
         self.FPN = FPN_fuse(feature_channels, fpn_out=fpn_out)
         self.head = nn.Conv2d(fpn_out, num_classes, kernel_size=3, padding=1)
@@ -111,6 +112,7 @@ def get_seg_vmamba_from_plans(
     ):
 
     label_manager = plans_manager.get_label_manager(dataset_json)
+    labels_idx = tuple(label_manager.all_labels)
 
     backbone = Backbone_VSSM(
         in_chans=num_input_channels,
@@ -128,7 +130,7 @@ def get_seg_vmamba_from_plans(
         downsample_version="v3",
         patchembed_version="v2",
         drop_path_rate=0.6,
-        out_indices=tuple(label_manager.all_labels),
+        out_indices=(0, 1, 2, 3),
         norm_layer="ln2d"
     )
 
@@ -136,7 +138,8 @@ def get_seg_vmamba_from_plans(
     model = SegVMamba(
         num_classes=label_manager.num_segmentation_heads,
         backbone=backbone,
-        in_channels=num_input_channels
+        in_channels=num_input_channels,
+        fpn_out=128
     )
 
     #model.apply(InitWeights_He(1e-2))

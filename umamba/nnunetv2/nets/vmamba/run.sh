@@ -9,7 +9,8 @@ slurm_partition="all_usr_prod"
 slurm_account="grana_maxillo"
 slurm_time="00:10:00"
 slurm_gres="gpu:1"
-slurm_constraint="gpu_RTX5000_16G|gpu_A40_48G|gpu_RTX6000_24G|gpu_RTXA5000_24G"
+slurm_constraint="gpu_RTX6000_24G|gpu_RTXA5000_24G"
+s_constraint="gpu_2080Ti_11G"
 
 random_string=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 4 | head -n 1)
 sbatch_file="/tmp/$random_string.sbatch"
@@ -23,6 +24,7 @@ echo "#SBATCH --cpus-per-task=4" >> $sbatch_file
 echo "#SBATCH --gres=$slurm_gres" >> $sbatch_file
 echo "#SBATCH --partition=$slurm_partition" >> $sbatch_file
 echo "#SBATCH --account=$slurm_account" >> $sbatch_file
+echo "#SBATCH --constraint=$s_constraint" >> $sbatch_file
 
 echo "source /work/grana_maxillo/Mamba3DMedModels/venv/bin/activate" >> $sbatch_file
 echo "module unload cuda/12.1" >> $sbatch_file

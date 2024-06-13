@@ -4,6 +4,61 @@ import torch.nn as nn
 import torch.nn.functional as F
 from mamba_ssm import Mamba
 
+def pad_to_multiple_8(tensor):
+    # Get the shape of the input tensor
+    B, C, H, W, D = tensor.shape
+
+    # Calculate padding sizes for each dimension
+    pad_h = (8 - H % 8) % 8
+    pad_w = (8 - W % 8) % 8
+    pad_d = (8 - D % 8) % 8
+
+    # Calculate padding for left/right, top/bottom, and front/back
+    pad_h_before = pad_h // 2
+    pad_h_after = pad_h - pad_h_before
+    pad_w_before = pad_w // 2
+    pad_w_after = pad_w - pad_w_before
+    pad_d_before = pad_d // 2
+    pad_d_after = pad_d - pad_d_before
+
+    # Apply padding
+    padded_tensor = F.pad(tensor, 
+                          (pad_d_before, pad_d_after,  # depth padding
+                           pad_w_before, pad_w_after,  # width padding
+                           pad_h_before, pad_h_after)) # height padding
+
+    return padded_tensor
+
+def remove_padding(tensor, original_shape, div_factor):
+    # Get the original shape
+    B, C, H, W, D = original_shape
+
+    H = H // div_factor
+    W = W // div_factor
+    D = D // div_factor
+
+    # Calculate the difference between the padded shape and original shape
+    padded_H, padded_W, padded_D = tensor.shape[2:]
+
+    pad_h = padded_H - H
+    pad_w = padded_W - W
+    pad_d = padded_D - D
+
+    # Calculate the indices to slice the tensor to remove padding
+    pad_h_before = pad_h // 2
+    pad_h_after = pad_h - pad_h_before
+    pad_w_before = pad_w // 2
+    pad_w_after = pad_w - pad_w_before
+    pad_d_before = pad_d // 2
+    pad_d_after = pad_d - pad_d_before
+
+    # Slice the tensor to remove padding
+    unpadded_tensor = tensor[:, :, 
+                             pad_h_before:padded_H - pad_h_after, 
+                             pad_w_before:padded_W - pad_w_after, 
+                             pad_d_before:padded_D - pad_d_after]
+
+    return unpadded_tensor
 
 def conv3x3(in_planes, out_planes, stride=1, groups=1, dilation=1):
     """3x3 convolution with padding."""
@@ -151,7 +206,7 @@ class nnMambaSeg(nn.Module):
                  deep_supervision=True
                  ):
         super(nnMambaSeg, self).__init__()
-        self.do_ds = deep_supervision
+        self.do_ds = deep_supervision and False
         self.in_conv = DoubleConv(input_channels, channels, stride=2, kernel_size=3)
         self.pooling = nn.AdaptiveAvgPool3d((1, 1, 1))
 
@@ -179,14 +234,8 @@ class nnMambaSeg(nn.Module):
 
 
     def forward(self, x):
-        print(f'{x.shape=}')
-        if x.shape[2] == 14: # Fix for ACDC which has 14 in the first spatial dimension (and we want 16)
-            x = F.pad(x, (0,0,0,0,1,1), value=0)
-        if x.shape[4] == 224: # ACDC
-            print(f'pad 4')
-            x = F.pad(x, (16,16), value=0)
-        print(f'{x.shape=}')
-
+        original_shape = x.shape
+        x = pad_to_multiple_8(x)
         c1 = self.in_conv(x)
         scale_f1 = self.att1(self.pooling(c1).reshape(c1.shape[0], c1.shape[1])).reshape(c1.shape[0], c1.shape[1], 1, 1, 1)
         # c1_s = self.mamba_layer_stem(c1) + c1
@@ -200,31 +249,17 @@ class nnMambaSeg(nn.Module):
         c4 = self.layer3(c3)
         # c4_s = self.mamba_layer_3(c4) + c4
 
-        print(f'{c1.shape=}')
-        print(f'{c2.shape=}')
-        print(f'{c3.shape=}')
-        print(f'{c4.shape=}')
-
         up_5 = self.up5(c4)
-        print(f'{up_5.shape=}')
         merge5 = torch.cat([up_5, c3*scale_f3], dim=1)
         c5 = self.conv5(merge5)
         up_6 = self.up6(c5)
-        print(f'{c5.shape=}')
-        print(f'{up_6.shape=}')
         merge6 = torch.cat([up_6, c2*scale_f2], dim=1)
         c6 = self.conv6(merge6)
         up_7 = self.up7(c6)
-        print(f'{c6.shape=}')
-        print(f'{up_7.shape=}')
         merge7 = torch.cat([up_7, c1*scale_f1], dim=1)
         c7 = self.conv7(merge7)
         up_8 = self.up8(c7)
-        print(f'{c7.shape=}')
-        print(f'{up_8.shape=}')
         c8 = self.conv8(up_8)
-
-        print(f'{c8.shape=}')
 
         logits = []
         logits.append(c8)
@@ -232,7 +267,12 @@ class nnMambaSeg(nn.Module):
         logits.append(self.ds2_cls_conv(c6))
         logits.append(self.ds3_cls_conv(c5))
 
+        logits = [remove_padding(l, original_shape, 2**i) for i,l in enumerate(logits)]
+
         if self.do_ds:
+            # return [remove_padding(l, original_shape, 2**i) for i,l in enumerate(logits)]
             return logits
         else:
+            # return remove_padding(logits[0], original_shape)
             return logits[0]
+

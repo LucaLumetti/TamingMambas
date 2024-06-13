@@ -18,8 +18,8 @@ class nnUNetTrainerSwinUMambaD(nnUNetTrainer):
     """ Swin-UMamba$\dagger$ with Mamba-based decoder"""
 
     def __init__(self, plans: dict, configuration: str, fold: int, dataset_json: dict, unpack_dataset: bool = True,
-                 device: torch.device = torch.device('cuda')):
-        super().__init__(plans, configuration, fold, dataset_json, unpack_dataset, device)
+                 device: torch.device = torch.device('cuda'), debug=False):
+        super().__init__(plans, configuration, fold, dataset_json, unpack_dataset, device, debug=debug)
         self.initial_lr = 1e-4
         self.weight_decay = 5e-2
         self.enable_deep_supervision = True

@@ -35,7 +35,8 @@ def get_trainer_from_args(dataset_name_or_id: Union[int, str],
                           trainer_name: str = 'nnUNetTrainer',
                           plans_identifier: str = 'nnUNetPlans',
                           use_compressed: bool = False,
-                          device: torch.device = torch.device('cuda')):
+                          device: torch.device = torch.device('cuda'),
+                          debug: bool = False):
     # load nnunet class and do sanity checks
     nnunet_trainer = recursive_find_python_class(join(nnunetv2.__path__[0], "training", "nnUNetTrainer"),
                                                 trainer_name, 'nnunetv2.training.nnUNetTrainer')
@@ -64,7 +65,7 @@ def get_trainer_from_args(dataset_name_or_id: Union[int, str],
     plans = load_json(plans_file)
     dataset_json = load_json(join(preprocessed_dataset_folder_base, 'dataset.json'))
     nnunet_trainer = nnunet_trainer(plans=plans, configuration=configuration, fold=fold,
-                                    dataset_json=dataset_json, unpack_dataset=not use_compressed, device=device)
+                                    dataset_json=dataset_json, unpack_dataset=not use_compressed, device=device, debug=debug)
     return nnunet_trainer
 
 
@@ -148,7 +149,8 @@ def run_training(dataset_name_or_id: Union[str, int],
                  only_run_validation: bool = False,
                  disable_checkpointing: bool = False,
                  val_with_best: bool = False,
-                 device: torch.device = torch.device('cuda')):
+                 device: torch.device = torch.device('cuda'),
+                 debug: bool = False):
     if isinstance(fold, str):
         if fold != 'all':
             try:
@@ -188,7 +190,7 @@ def run_training(dataset_name_or_id: Union[str, int],
                  join=True)
     else:
         nnunet_trainer = get_trainer_from_args(dataset_name_or_id, configuration, fold, trainer_class_name,
-                                               plans_identifier, use_compressed_data, device=device)
+                                               plans_identifier, use_compressed_data, device=device, debug=debug)
 
         if disable_checkpointing:
             nnunet_trainer.disable_checkpointing = disable_checkpointing
@@ -250,7 +252,7 @@ def run_training_entry():
                     help="Use this to set the device the training should run with. Available options are 'cuda' "
                          "(GPU), 'cpu' (CPU) and 'mps' (Apple M1/M2). Do NOT use this to set which GPU ID! "
                          "Use CUDA_VISIBLE_DEVICES=X nnUNetv2_train [...] instead!")
-    parser.add_argument("--debug", action='store_true', help="debug, no wandb")
+    parser.add_argument("--debug", action='store_true', help="debug, no wandb")    
     args = parser.parse_args()
 
     assert args.device in ['cpu', 'cuda', 'mps'], f'-device must be either cpu, mps or cuda. Other devices are not tested/supported. Got: {args.device}.'
@@ -269,19 +271,24 @@ def run_training_entry():
 
     if args.debug:
         os.environ['WANDB_DISABLED'] = 'true'
+
+    additional_suffix = ""
+    if args.configuration == '2d' and args.tr == "":
+        additional_suffix = "_2d"
+
     run = wandb.init(
         project="MambaSurvey",
-        name=f'Dataset{int(args.dataset_name_or_id):03d}_{args.tr}_Fold{args.fold}', 
+        name=f'Dataset{int(args.dataset_name_or_id):03d}_{args.tr}{additional_suffix}_Fold{args.fold}', 
         entity="maxillo",
         config=args,
-        id=f'Dataset{int(args.dataset_name_or_id):03d}_{args.tr}_Fold{args.fold}', 
+        id=f'Dataset{int(args.dataset_name_or_id):03d}_{args.tr}{additional_suffix}_Fold{args.fold}', 
         resume=f'allow',
         tags=[socket.gethostname()]
     )
 
     run_training(args.dataset_name_or_id, args.configuration, args.fold, args.tr, args.p, args.pretrained_weights,
                  args.num_gpus, args.use_compressed, args.npz, args.c, args.val, args.disable_checkpointing, args.val_best,
-                 device=device)
+                 device=device, debug=args.debug)
 
 
 if __name__ == '__main__':

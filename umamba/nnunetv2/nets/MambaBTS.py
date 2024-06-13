@@ -31,7 +31,7 @@ class MS(nn.Module):
         super(MS, self).__init__()
         self.channels = channels
         self.kernel = kernel
-        self.conv = nn.Conv2d(2, 1, kernel, padding=3)
+        self.conv = nn.Conv2d(2, 1, kernel, padding="same")
         self.sigmoid = torch.nn.Sigmoid()
 
     def forward(self, f):
@@ -52,7 +52,7 @@ class CBAM(nn.Module):
         self.mc = MC(channels=channels, reduction_ratio=reduction_ratio,)
         self.ms = MS(channels=channels, kernel=kernel)
     def forward(self, f):
-        f1 = f*self.mc(f)
+        f1 = f*self.mc(f).unsqueeze(-1).unsqueeze(-1)
         f2 = f1*self.ms(f1)
         return f2
 
@@ -73,22 +73,22 @@ class EncMSBlock(nn.Module):
     def __init__(self, in_channels, out_channels):
         super(EncMSBlock, self).__init__()
         self.batchnorm_1 = nn.BatchNorm2d(in_channels)
-        self.conv1 = nn.Sequential(nn.Conv2d(in_channels, out_channels, kernel=7),
+        self.conv1 = nn.Sequential(nn.Conv2d(in_channels, out_channels, kernel_size=7, padding="same"),
                                              nn.BatchNorm2d(out_channels))
-        self.conv2 = nn.Sequential(nn.Conv2d(in_channels, out_channels, kernel=5),
+        self.conv2 = nn.Sequential(nn.Conv2d(in_channels, out_channels, kernel_size=5, padding="same"),
                                              nn.BatchNorm2d(out_channels))
-        self.conv3 = nn.Sequential(nn.Conv2d(in_channels, out_channels, kernel=3),
+        self.conv3 = nn.Sequential(nn.Conv2d(in_channels, out_channels, kernel_size=3, padding="same"),
                                              nn.BatchNorm2d(out_channels))
-        self.conv4 = nn.Sequential(nn.Conv2d(in_channels, out_channels, kernel=3),
+        self.conv4 = nn.Sequential(nn.Conv2d(in_channels, out_channels, kernel_size=3, padding="same"),
                                              nn.BatchNorm2d(out_channels))
-        self.conv5 = nn.Sequential(nn.Conv2d(in_channels, out_channels, kernel=3),
+        self.conv5 = nn.Sequential(nn.Conv2d(in_channels, out_channels, kernel_size=3, padding="same"),
                                              nn.BatchNorm2d(out_channels))
 
         self.batchnorm_2 = nn.BatchNorm2d(out_channels)     
-        self.CBAM(out_channels)  
+        self.cbam = CBAM(out_channels)  
 
         self.linear_1 = nn.Linear(out_channels, out_channels)     
-        self.gelu = nn.GeLU()
+        self.gelu = nn.GELU()
         self.GRN = GRN(out_channels)
         self.linear_2 = nn.Linear(out_channels, out_channels)                                  
 
@@ -111,37 +111,54 @@ class EncMSBlock(nn.Module):
         res5 = conv5 + res4
         
         b_2 = self.batchnorm_2(res5)
-        cbam = self.CBAM(b_2)
+        cbam = self.cbam(b_2)
         # permute
         p_1 = torch.einsum('nchw->nhwc', cbam)
         l_1 = self.linear_1(p_1)
-        gelu = self.gelu(b_2)
+        gelu = self.gelu(l_1)
         GRN = self.GRN(gelu) # check dim of GRN
         l_2 = self.linear_2(GRN)
         # permute
-        p_2 = torch.einsum('nchw->nhwc', l_2)
+        p_2 = torch.einsum('nhwc->nchw', l_2)
         out = p_2 + x
 
         return out
 
 class ResUDM(nn.Module):
-    def __init__(self, ):
+    def __init__(self, in_channels, out_channels):
         super(ResUDM, self).__init__()
-        self.EncMSBlock1 = EncMSBlock()
-        self.EncMSBlock2 = EncMSBlock()
+        self.EncMSBlock1 = EncMSBlock(in_channels, out_channels)
+        self.EncMSBlock2 = EncMSBlock(in_channels, out_channels)
     def forward(self, x):
         f_1 = self.EncMSBlock1(x)
         f_2 = self.EncMSBlock2(f_1)
         out = x + f_2
         return out
 
+class MambaLayer(nn.Module):
+    def __init__(self, channels):
+        super(MambaLayer, self).__init__()
+        self.mamba = Mamba(
+            d_model=channels,
+            d_state=16,
+            d_conv=4,
+            expand=2,
+        )
+    def forward(self, x):
+        b, c, h, w = x.size()
+        x = torch.einsum('nchw->nhwc', x)
+        x = x.view(b, h*w, c)
+        x = self.mamba(x)
+        x = x.view(b, h, w, c)
+        x = torch.einsum('nhwc->nchw', x)
+        return x
 
 class UDMBlock(nn.Module):
-    def __init__(self, ):
+    def __init__(self, in_channels, out_channels, kernel_size):
         super(UDMBlock, self).__init__()
-        self.ResUDM = ResUDM()
-        self.MambaLayer = None
-        self.MaxPooling = None
+        self.ResUDM = ResUDM(in_channels, out_channels)
+        self.MambaLayer = MambaLayer(in_channels)
+        self.MaxPooling = torch.nn.MaxPool2d(kernel_size, stride=None, padding=0, dilation=1, return_indices=False, ceil_mode=False)
     def forward(self, x):
         f_1 = self.ResUDM(x)
         f_2 = self.MambaLayer(f_1)
@@ -217,33 +234,33 @@ def make_res_layer(inplanes, planes, blocks, stride=1, mamba_layer=None):
     return nn.Sequential(*layers)
 
 
-class MambaLayer(nn.Module):
-    def __init__(self, dim, d_state=16, d_conv=4, expand=2):
-        super().__init__()
-        self.dim = dim
-        self.nin = conv1x1(dim, dim)
-        self.norm = nn.BatchNorm3d(dim) # LayerNorm
-        self.relu = nn.ReLU(inplace=True)
-        self.mamba = Mamba(
-            d_model=dim,  # Model dimension d_model
-            d_state=d_state,  # SSM state expansion factor
-            d_conv=d_conv,  # Local convolution width
-            expand=expand  # Block expansion factor
-        )
+# class MambaLayer(nn.Module):
+#     def __init__(self, dim, d_state=16, d_conv=4, expand=2):
+#         super().__init__()
+#         self.dim = dim
+#         self.nin = conv1x1(dim, dim)
+#         self.norm = nn.BatchNorm3d(dim) # LayerNorm
+#         self.relu = nn.ReLU(inplace=True)
+#         self.mamba = Mamba(
+#             d_model=dim,  # Model dimension d_model
+#             d_state=d_state,  # SSM state expansion factor
+#             d_conv=d_conv,  # Local convolution width
+#             expand=expand  # Block expansion factor
+#         )
         
-    def forward(self, x):
-        B, C = x.shape[:2]
-        x = self.nin(x)
-        x = self.norm(x)
-        x = self.relu(x)
-        assert C == self.dim
-        n_tokens = x.shape[2:].numel()
-        img_dims = x.shape[2:]
-        x_flat = x.reshape(B, C, n_tokens).transpose(-1, -2)
-        # print('x_norm.dtype', x_norm.dtype)
-        x_mamba = self.mamba(x_flat)
-        out = x_mamba.transpose(-1, -2).reshape(B, C, *img_dims)
-        return out
+#     def forward(self, x):
+#         B, C = x.shape[:2]
+#         x = self.nin(x)
+#         x = self.norm(x)
+#         x = self.relu(x)
+#         assert C == self.dim
+#         n_tokens = x.shape[2:].numel()
+#         img_dims = x.shape[2:]
+#         x_flat = x.reshape(B, C, n_tokens).transpose(-1, -2)
+#         # print('x_norm.dtype', x_norm.dtype)
+#         x_mamba = self.mamba(x_flat)
+#         out = x_mamba.transpose(-1, -2).reshape(B, C, *img_dims)
+#         return out
 
 
 class DoubleConv(nn.Module):
@@ -405,14 +422,17 @@ def get_mambabts_2d_from_plans(
 
 if __name__ == "__main__":
     B, C, H, W = 2, 16, 8, 8
-    x = torch.ones((B, C, H, W))
+    x = torch.ones((B, C, H, W)).cuda()
     print(f"x: {x}\n{x.shape}\n\n")
-    mc = MC(C)
-    ms = MS(C)
+    mc = MC(C).cuda()
+    ms = MS(C).cuda()
     f_mc = mc(x)
     f_ms = ms(x)
     print(f"f_mc: {f_mc}\n{f_mc.shape}\n\n")
     print(f"f_ms: {f_ms}\n{f_ms.shape}\n\n")
-    cbam = CBAM(C)
+    cbam = CBAM(C).cuda()
     cbam_out = cbam(x)
     print(f"cbam_out: {cbam_out}\n{cbam_out.shape}\n\n")
+    udmblock = UDMBlock(C, C, 2).cuda()
+    udmblock_out = udmblock(x)
+    print(f"udmblock_out: {udmblock_out}\n{udmblock_out.shape}\n\n")

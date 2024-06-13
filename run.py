@@ -77,13 +77,14 @@ if current_hostname in ailb_cluster:
     if args.boost:
         slurm_partition = "boost_usr_prod"
         slurm_time = "12:00:00"
+    slurm_time = "7:00:00"
 else:
     # Configuration specific to Aries cluster
     print(f"Detected Aries Cluster, please press Ctrl+C if I'm wrong. Running sbatch in {SLEEP_SECONDS} seconds")
     cluster = "Aries"
     slurm_partition = "ice4hpc"
     slurm_account = "cgr"
-    slurm_time = "24:00:00"
+    slurm_time = "72:00:00"
     slurm_gres = "gpu:1g.20gb:1"
 
 job_name = f"{args.model}_{args.dataset}_{args.fold}_nnUNet"
@@ -133,6 +134,7 @@ with open(sbatch_file, 'w') as f:
     ))
 
     f.write(f"export WANDB__SERVICE_WAIT=300\n")
+    f.write(f"export WANDB_MODE=online\n")
     f.write(f"source {venv_path}\n\n")
     f.write(f"srun nnUNetv2_train {args.dataset} {args.config} {args.fold} -tr nnUNetTrainer{args.model} {continue_training} &\n")
     # f.write(f"srun sleep 120 &\n")

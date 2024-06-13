@@ -26,6 +26,7 @@ class nnUNetTrainernnMamba(nnUNetTrainer):
         self.grad_scaler = None
         self.initial_lr = 1e-4
         self.weight_decay = 3e-5
+        self.enable_deep_supervision = False
 
     def configure_optimizers(self):
         optimizer = torch.optim.SGD(self.network.parameters(), self.initial_lr, weight_decay=self.weight_decay,
@@ -41,6 +42,7 @@ class nnUNetTrainernnMamba(nnUNetTrainer):
                                    enable_deep_supervision: bool = False) -> nn.Module:
         
         label_manager = plans_manager.get_label_manager(dataset_json)
+        enable_deep_supervision = False
 
         model = nnMambaSeg(
             input_channels=num_input_channels,

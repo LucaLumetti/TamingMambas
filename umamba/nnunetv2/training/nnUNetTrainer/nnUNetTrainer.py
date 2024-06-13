@@ -66,7 +66,7 @@ from torch.nn.parallel import DistributedDataParallel as DDP
 
 class nnUNetTrainer(object):
     def __init__(self, plans: dict, configuration: str, fold: int, dataset_json: dict, unpack_dataset: bool = True,
-                 device: torch.device = torch.device('cuda')):
+                 device: torch.device = torch.device('cuda'), debug: bool =False):
         # From https://grugbrain.dev/. Worth a read ya big brains ;-)
 
         # apex predator of grug is complexity
@@ -88,6 +88,7 @@ class nnUNetTrainer(object):
         self.local_rank = 0 if not self.is_ddp else dist.get_rank()
 
         self.device = device
+        self.debug = debug
 
         # print what device we are using
         if self.is_ddp:  # implicitly it's clear that we use cuda in this case
@@ -304,6 +305,10 @@ class nnUNetTrainer(object):
         if not self.is_ddp:
             # set batch size to what the plan says, leave oversample untouched
             self.batch_size = self.configuration_manager.batch_size
+            if self.debug:
+                self.batch_size = 1
+                self.print_to_log_file(f'DEBUG MODE, batch_size set to {self.batch_size}')
+            
         else:
             # batch size is distributed over DDP workers and we need to change oversample_percent for each worker
             batch_sizes = []
@@ -345,6 +350,9 @@ class nnUNetTrainer(object):
             # self.print_to_log_file("worker", my_rank, "batch_size", batch_sizes[my_rank])
 
             self.batch_size = batch_sizes[my_rank]
+            if self.debug:
+                self.batch_size = 1
+                self.print_to_log_file(f'DEBUG MODE, batch_size set to {self.batch_size}')
             self.oversample_foreground_percent = oversample_percents[my_rank]
 
     def _build_loss(self):

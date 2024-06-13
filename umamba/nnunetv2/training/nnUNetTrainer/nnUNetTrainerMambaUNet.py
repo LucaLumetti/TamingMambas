@@ -9,9 +9,9 @@ from torch.optim.lr_scheduler import CosineAnnealingLR
 
 class nnUNetTrainerMambaUNet(nnUNetTrainer):
     def __init__(self, plans: dict, configuration: str, fold: int, dataset_json: dict, unpack_dataset: bool = True,
-                 device: torch.device = torch.device('cuda')):
-        super().__init__(plans, configuration, fold, dataset_json, unpack_dataset, device)
-        self.num_epochs = 300
+                 device: torch.device = torch.device('cuda'), debug=False):
+        super().__init__(plans, configuration, fold, dataset_json, unpack_dataset, device, debug=debug)
+        self.num_epochs = 1000
         self.enable_deep_supervision = False
         self.initial_lr = 5e-4
         self.weight_decay = 0.05

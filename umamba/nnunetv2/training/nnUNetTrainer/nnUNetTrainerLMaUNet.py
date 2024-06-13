@@ -10,8 +10,8 @@ class nnUNetTrainerLMaUNet(nnUNetTrainer):
     MambaUNet Encoder + Residual Decoder + Skip Connections
     """
     def __init__(self, plans: dict, configuration: str, fold: int, dataset_json: dict, unpack_dataset: bool = True,
-                 device: torch.device = torch.device('cuda')):
-        super().__init__(plans, configuration, fold, dataset_json, unpack_dataset, device)
+                 device: torch.device = torch.device('cuda'), debug=False):
+        super().__init__(plans, configuration, fold, dataset_json, unpack_dataset, device, debug=debug)
 
     @staticmethod
     def build_network_architecture(plans_manager: PlansManager,
