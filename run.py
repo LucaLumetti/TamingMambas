@@ -77,7 +77,6 @@ if current_hostname in ailb_cluster:
     if args.boost:
         slurm_partition = "boost_usr_prod"
         slurm_time = "12:00:00"
-    slurm_time = "7:00:00"
 else:
     # Configuration specific to Aries cluster
     print(f"Detected Aries Cluster, please press Ctrl+C if I'm wrong. Running sbatch in {SLEEP_SECONDS} seconds")
@@ -86,6 +85,8 @@ else:
     slurm_account = "cgr"
     slurm_time = "72:00:00"
     slurm_gres = "gpu:1g.20gb:1"
+    if args.boost or args.high:
+        slurm_gres = "gpu:a100:1"
 
 job_name = f"{args.model}_{args.dataset}_{args.fold}_nnUNet"
 if job_name[0] == '_':
@@ -157,6 +158,5 @@ if args.debug:
 else:
     subprocess.call(f"sbatch {sbatch_file}", shell=True)
     print(f"Submitted sbatch file {sbatch_file}")
-    subprocess.call(f"squeue --me", shell=True)
-    subprocess.call(f"squeue --partition=ice4hpc", shell=True)
+    subprocess.call(f"squeue --partition={slurm_partition}", shell=True)
 
