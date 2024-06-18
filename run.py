@@ -1,3 +1,5 @@
+#!/usr/local/anaconda3/bin/python
+
 import os
 import sys
 import time
@@ -8,11 +10,6 @@ import argparse
 import socket
 
 SLEEP_SECONDS = 2
-
-# Check if virtualenv is activated
-if subprocess.call("command -v nnUNetv2_train > /dev/null 2>&1", shell=True) != 0:
-    print("nnUNetv2_train not found, please activate the environment")
-    sys.exit(1)
 
 ailb_cluster = ["aimagelab-srv-10", "ajeje", "carabbaggio", "ailb-login-01", "ailb-login-02", "aimagelab-srv-00"]
 

@@ -1,5 +1,6 @@
 import torch
-from torch.optim import Adam, AdamW
+from torch.optim import Adam, AdamW, RAdam
+from torch.optim.lr_scheduler import CosineAnnealingLR
 
 from nnunetv2.training.lr_scheduler.polylr import PolyLRScheduler
 from nnunetv2.training.nnUNetTrainer.nnUNetTrainer import nnUNetTrainer
@@ -41,6 +42,25 @@ class nnUNetTrainerVanillaAdam3en4(nnUNetTrainerVanillaAdam):
                  device: torch.device = torch.device('cuda')):
         super().__init__(plans, configuration, fold, dataset_json, unpack_dataset, device)
         self.initial_lr = 3e-4
+
+class nnUNetTrainerVanillaRAdam3en4(nnUNetTrainer):
+    def __init__(self, plans: dict, configuration: str, fold: int, dataset_json: dict, unpack_dataset: bool = True,
+                 device: torch.device = torch.device('cuda'), debug=False):
+        super().__init__(plans, configuration, fold, dataset_json, unpack_dataset, device, debug=debug)
+        self.initial_lr = 3e-4
+
+    def configure_optimizers(self):
+        optimizer = RAdam(self.network.parameters(),
+                         lr=self.initial_lr,
+                         weight_decay=self.weight_decay)
+        # lr_scheduler = PolyLRScheduler(optimizer, self.initial_lr, self.num_epochs)
+        lr_scheduler = CosineAnnealingLR(
+            optimizer=optimizer,
+            T_max=100,
+            eta_min=5e-6,
+            last_epoch=-1
+        )
+        return optimizer, lr_scheduler
 
 
 class nnUNetTrainerAdam1en3(nnUNetTrainerAdam):

@@ -11,9 +11,9 @@ class nnUNetTrainerMultiSegMamba(nnUNetTrainerVanillaRAdam3en4):
     Residual Encoder + UMmaba Bottleneck + Residual Decoder + Skip Connections
     """
     def __init__(self, plans: dict, configuration: str, fold: int, dataset_json: dict, unpack_dataset: bool = True,
-                 device: torch.device = torch.device('cuda')):
-        super().__init__(plans, configuration, fold, dataset_json, unpack_dataset, device)
-        self.num_epochs = 1
+                 device: torch.device = torch.device('cuda'), debug=False):
+        super().__init__(plans, configuration, fold, dataset_json, unpack_dataset, device, debug=debug)
+        self.num_epochs = 1000
 
     @staticmethod
     def build_network_architecture(plans_manager: PlansManager,
