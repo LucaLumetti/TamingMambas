@@ -1,19 +1,19 @@
 from nnunetv2.training.nnUNetTrainer.nnUNetTrainer import nnUNetTrainer
-from nnunetv2.training.nnUNetTrainer.variants.optimizer.nnUNetTrainerAdam import nnUNetTrainerVanillaRAdam3en4
+from nnunetv2.training.nnUNetTrainer.variants.optimizer.nnUNetTrainerAdam import nnUNetTrainerVanillaRAdam3en4, nnUNetTrainerVanillaRAdam3en4OneCycleLR
 from nnunetv2.utilities.plans_handling.plans_handler import ConfigurationManager, PlansManager
 import torch
 from torch import nn
 from nnunetv2.nets.MultiSegMamba import get_multisegmamba_from_plans
 
 
-class nnUNetTrainerMultiSegMamba(nnUNetTrainerVanillaRAdam3en4):
+class nnUNetTrainerMultiSegMamba(nnUNetTrainerVanillaRAdam3en4OneCycleLR):
     """
     Residual Encoder + UMmaba Bottleneck + Residual Decoder + Skip Connections
     """
     def __init__(self, plans: dict, configuration: str, fold: int, dataset_json: dict, unpack_dataset: bool = True,
                  device: torch.device = torch.device('cuda'), debug=False):
         super().__init__(plans, configuration, fold, dataset_json, unpack_dataset, device, debug=debug)
-        self.num_epochs = 1000
+        self.num_epochs = 300
 
     @staticmethod
     def build_network_architecture(plans_manager: PlansManager,

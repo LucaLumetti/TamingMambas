@@ -63,6 +63,30 @@ class nnUNetTrainerVanillaRAdam3en4(nnUNetTrainer):
         return optimizer, lr_scheduler
 
 
+class nnUNetTrainerVanillaRAdam3en4OneCycleLR(nnUNetTrainer):
+    def __init__(self, plans: dict, configuration: str, fold: int, dataset_json: dict, unpack_dataset: bool = True,
+                 device: torch.device = torch.device('cuda'), debug=False):
+        super().__init__(plans, configuration, fold, dataset_json, unpack_dataset, device, debug=debug)
+        self.initial_lr = 3e-4
+        self.num_epochs = 300
+    def configure_optimizers(self):
+        optimizer = RAdam(self.network.parameters(),
+                         lr=self.initial_lr,
+                         weight_decay=self.weight_decay)
+        kwargs = {
+            'max_lr': self.initial_lr,
+            'total_steps': self.num_epochs,
+            'steps_per_epoch': 1,
+            'epochs': self.num_epochs,
+            'pct_start': 0.1,
+            'final_div_factor': 1e8,
+            'anneal_strategy': 'cos', #'cos' | 'linear'
+            # 'three_phase': False, # True
+        }
+        lr_scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer, **kwargs)
+        return optimizer, lr_scheduler
+
+
 class nnUNetTrainerAdam1en3(nnUNetTrainerAdam):
     def __init__(self, plans: dict, configuration: str, fold: int, dataset_json: dict, unpack_dataset: bool = True,
                  device: torch.device = torch.device('cuda')):

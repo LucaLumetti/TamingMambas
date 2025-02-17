@@ -6,8 +6,10 @@ import sys
 import warnings
 from copy import deepcopy
 from datetime import datetime
-from time import time, sleep
+from time import sleep
+import time
 from typing import Union, Tuple, List
+import wandb
 
 import numpy as np
 import torch
@@ -181,7 +183,7 @@ class nnUNetTrainer(object):
         # self.configure_rotation_dummyDA_mirroring_and_inital_patch_size and will be saved in checkpoints
 
         ### checkpoint saving stuff
-        self.save_every = 10
+        self.save_every = 1
         self.disable_checkpointing = False
 
         ## DDP batch size and oversampling can differ between workers and needs adaptation
@@ -210,6 +212,7 @@ class nnUNetTrainer(object):
                 self.num_input_channels,
                 self.enable_deep_supervision,
             ).to(self.device)
+            
             # compile network for free speedup
             if self._do_i_compile():
                 self.print_to_log_file('Using torch.compile...')
@@ -219,7 +222,7 @@ class nnUNetTrainer(object):
             # if ddp, wrap in DDP wrapper
             if self.is_ddp:
                 self.network = torch.nn.SyncBatchNorm.convert_sync_batchnorm(self.network)
-                self.network = DDP(self.network, device_ids=[self.local_rank])
+                self.network = DDP(self.network, device_ids=[self.local_rank], find_unused_parameters=True)
 
             self.loss = self._build_loss()
             self.was_initialized = True
@@ -444,7 +447,7 @@ class nnUNetTrainer(object):
 
     def print_to_log_file(self, *args, also_print_to_console=True, add_timestamp=True):
         if self.local_rank == 0:
-            timestamp = time()
+            timestamp = time.time()
             dt_object = datetime.fromtimestamp(timestamp)
 
             if add_timestamp:
@@ -832,6 +835,27 @@ class nnUNetTrainer(object):
         self.print_plans()
         empty_cache(self.device)
 
+        #if self.local_rank == 0:
+        import socket
+        dataset_name = self.plans_manager.dataset_name
+        trainer_name = self.__class__.__name__
+        is_2d_or_3d = len(self.configuration_manager.patch_size)
+        fold = self.fold
+
+        wandb_name_and_id = f'{dataset_name}_{trainer_name}_{is_2d_or_3d}D_Fold{fold}'
+        run = wandb.init(
+            #project="test",
+            #name=wandb_name_and_id,
+            #entity="test",
+            #id=wandb_name_and_id,
+            #resume="allow",
+            #tags=[socket.gethostname()],
+            #settings=wandb.Settings(_service_wait=900)
+            mode="disabled"
+        )
+        wandb.watch(self.network, log_freq=1000)
+
+
         # maybe unpack
         if self.unpack_dataset and self.local_rank == 0:
             self.print_to_log_file('unpacking dataset...')
@@ -928,6 +952,7 @@ class nnUNetTrainer(object):
             torch.nn.utils.clip_grad_norm_(self.network.parameters(), 12)
             self.optimizer.step()
         return {'loss': l.detach().cpu().numpy()}
+          
 
     def on_train_epoch_end(self, train_outputs: List[dict]):
         outputs = collate_outputs(train_outputs)
@@ -1042,10 +1067,10 @@ class nnUNetTrainer(object):
         self.logger.log('val_losses', loss_here, self.current_epoch)
 
     def on_epoch_start(self):
-        self.logger.log('epoch_start_timestamps', time(), self.current_epoch)
+        self.logger.log('epoch_start_timestamps', time.time(), self.current_epoch)
 
     def on_epoch_end(self):
-        self.logger.log('epoch_end_timestamps', time(), self.current_epoch)
+        self.logger.log('epoch_end_timestamps', time.time(), self.current_epoch)
 
         self.print_to_log_file('train_loss', np.round(self.logger.my_fantastic_logging['train_losses'][-1], decimals=4))
         self.print_to_log_file('val_loss', np.round(self.logger.my_fantastic_logging['val_losses'][-1], decimals=4))
