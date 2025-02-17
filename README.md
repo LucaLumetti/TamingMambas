@@ -29,9 +29,18 @@ import mamba_ssm
   booktitle={Proceedings of 2025 IEEE International Symposium on Biomedical Imaging (ISBI)},
   year={2025}
 }
+
+@article{lumetti2024taming,
+  title={Taming Mambas for Voxel Level 3D Medical Image Segmentation},
+  author={Lumetti, Luca and Pipoli, Vittorio and Marchesini, Kevin and Ficarra, Elisa and Grana, Costantino and Bolelli, Federico},
+  journal={arXiv preprint arXiv:2410.15496},
+  year={2024}
+}
 ```
+
+
 
 ## Acknowledgements
 
-We acknowledge all the authors of the employed public datasets, allowing the community to use these valuable resources for research purposes. We also thank the authors of [nnU-Net](https://github.com/MIC-DKFZ/nnUNet) and [Mamba](https://github.com/state-spaces/mamba) for making their valuable code publicly available.
+We acknowledge all the authors of the employed public datasets, allowing the community to use these valuable resources for research purposes. We also thank the authors of [nnU-Net](https://github.com/MIC-DKFZ/nnUNet), [Mamba](https://github.com/state-spaces/mamba) and [U-Mamba](https://github.com/bowang-lab/U-Mamba) for making their valuable code publicly available.
 
