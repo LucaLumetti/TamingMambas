@@ -3,8 +3,6 @@ import os
 import SimpleITK as sitk
 import numpy as np
 from medpy.metric import binary
-from sklearn.neighbors import KDTree
-from scipy import ndimage
 import argparse
 import wandb
 from tqdm import tqdm
@@ -45,6 +43,8 @@ def test(model, fold):
 
     label_list=sorted(glob.glob(os.path.join(nnUNet_raw, DATASET, 'labelsTs', '*nii.gz')))
     infer_list=sorted(glob.glob(os.path.join(nnUNet_raw, DATASET, infer_path, fold, '*nii.gz')))
+
+    print(os.path.join(nnUNet_raw, DATASET, infer_path, fold, '*nii.gz'))
 
     print(f'Found {len(label_list)} labels and {len(infer_list)} gts')
 
@@ -96,14 +96,18 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("model", help="model name")
     parser.add_argument("fold", help="fold name")
+    parser.add_argument("config", help="config")
     args = parser.parse_args()
 
+
+    name_and_id = f'Dataset027_ACDC_nnUNetTrainer{args.model}_{args.config}_Fold{args.fold}'
     run = wandb.init(
-        project="MambaSurvey",
-        name=f'Dataset027_nnUNetTrainer{args.model}_Fold{args.fold}', 
-        entity="maxillo",
-        id=f'Dataset027_nnUNetTrainer{args.model}_Fold{args.fold}', 
-        resume=f'allow',
+        #project="test",
+        #name=name_and_id,
+        #entity="test",
+        #id=name_and_id,
+        #resume="allow",
+        mode="disabled"
     )
 
     test(args.model, args.fold)

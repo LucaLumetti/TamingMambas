@@ -1,5 +1,5 @@
 #!/usr/local/anaconda3/bin/python
-
+# TO MODIFY BASED ON YOUR NEED.
 import os
 import sys
 import time
@@ -19,9 +19,12 @@ parser.add_argument('-d', '--dataset', required=True, help='Dataset name')
 parser.add_argument('-m', '--model', required=True, help='Model name')
 parser.add_argument('-f', '--fold', required=True, help='Fold number')
 parser.add_argument('-c', '--config', required=True, help='Train Config: 2d, 3d_fullres')
+parser.add_argument('-p', '--plans', required=False, default='nnUNetPlans', help='nnUNetPlans, nnUNetPlansSwinUnet')
 parser.add_argument('--high', required=False, default=False, action='store_true')
 parser.add_argument('--boost', required=False, default=False, action='store_true')
 parser.add_argument('--debug', required=False, default=False, action='store_true')
+parser.add_argument('--ngpu', required=False, default=1)
+
 args = parser.parse_args()
 
 if args.boost and args.high:
@@ -133,14 +136,16 @@ with open(sbatch_file, 'w') as f:
 
     f.write(f"export WANDB__SERVICE_WAIT=300\n")
     f.write(f"export WANDB_MODE=online\n")
+    f.write(f"export TORCH_DISTRIBUTED_DEBUG=detail\n")
     f.write(f"source {venv_path}\n\n")
-    f.write(f"srun nnUNetv2_train {args.dataset} {args.config} {args.fold} -tr nnUNetTrainer{args.model} {continue_training} &\n")
+    # f.write(f"srun nnUNetv2_train {args.dataset} {args.config} {args.fold} -tr nnUNetTrainer{args.model} {continue_training} -num_gpus {args.num_gpus} &\n")
+    f.write(f"srun nnUNetv2_train {args.dataset} {args.config} {args.fold} -tr nnUNetTrainer{args.model} -p {args.plans} {continue_training} &\n")
     # f.write(f"srun sleep 120 &\n")
     f.write(f"echo Waiting...\n")
     f.write("wait\n")
     f.write((
         f'if [[ -f "{checkpoint_final_path}" ]]; then\n'
-            f'\tsrun nnUNetv2_predict -i {imagesTs} -o {inferTs} -d {args.dataset} -tr nnUNetTrainer{args.model} -c {args.config} -f {args.fold} -chk checkpoint_final.pth\n'
+            f'\tsrun nnUNetv2_predict -i {imagesTs} -o {inferTs} -d {args.dataset} -tr nnUNetTrainer{args.model} -p {args.plans} -c {args.config} -f {args.fold} -chk checkpoint_final.pth\n'
         f'else\n'
             f'echo "Could not find checkpoint_final, maybe the train has crashed"\n'
         f'fi\n'
