@@ -1,0 +1,4 @@
+Detected AImageLab Cluster, please press Ctrl+C if I'm wrong. Running sbatch in 3 seconds
+sbatch: INFO: high memory job on all_usr_prod, excluding low memory nodes
+Submitted batch job 2262935
+Submitted sbatch file /tmp/ACDC_MultiSegMamba.sbatch

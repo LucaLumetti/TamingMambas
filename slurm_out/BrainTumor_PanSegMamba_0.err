@@ -1,0 +1,17 @@
+/var/lib/slurm/slurmd/job2271597/slurm_script: line 11: /unimore_home/llumetti/ECCV_MICCAI/BiUMamba/venv/bin/activate: No such file or directory
+Traceback (most recent call last):
+  File "/work/grana_maxillo/ECCV_MICCAI/U-Mamba/umamba/venv/bin/nnUNetv2_train", line 33, in <module>
+    sys.exit(load_entry_point('nnunetv2', 'console_scripts', 'nnUNetv2_train')())
+  File "/work/grana_maxillo/ECCV_MICCAI/U-Mamba/umamba/nnunetv2/run/run_training.py", line 268, in run_training_entry
+    run_training(args.dataset_name_or_id, args.configuration, args.fold, args.tr, args.p, args.pretrained_weights,
+  File "/work/grana_maxillo/ECCV_MICCAI/U-Mamba/umamba/nnunetv2/run/run_training.py", line 204, in run_training
+    nnunet_trainer.run_training()
+  File "/work/grana_maxillo/ECCV_MICCAI/U-Mamba/umamba/nnunetv2/training/nnUNetTrainer/nnUNetTrainer.py", line 1250, in run_training
+    self.on_train_start()
+  File "/work/grana_maxillo/ECCV_MICCAI/U-Mamba/umamba/nnunetv2/training/nnUNetTrainer/nnUNetTrainer.py", line 810, in on_train_start
+    self.initialize()
+  File "/work/grana_maxillo/ECCV_MICCAI/U-Mamba/umamba/nnunetv2/training/nnUNetTrainer/nnUNetTrainer.py", line 205, in initialize
+    self.network = self.build_network_architecture(
+  File "/work/grana_maxillo/ECCV_MICCAI/U-Mamba/umamba/nnunetv2/training/nnUNetTrainer/nnUNetTrainerPosSegMamba.py", line 22, in build_network_architecture
+    model = get_possegmamba_from_plans(plans_manager, dataset_json, configuration_manager,
+NameError: name 'get_possegmamba_from_plans' is not defined. Did you mean: 'get_pansegmamba_from_plans'?
