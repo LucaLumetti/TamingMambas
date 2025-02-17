@@ -13,15 +13,17 @@ Requirements: `Ubuntu 20.04`, `CUDA 11.8`
 5. `cd TamingMambas/umamba` and run `pip install -e .`
 
 
-sanity test: Enter python command-line interface and run
+Sanity check: Enter the Python command-line interface and run:
 
-```bash
+```python
 import torch
 import mamba_ssm
 ```
 
-## Papers
+If you face problems with Mamba or causal-conv1d, try to install them manually.
 
+## Cite Us
+If you find this project useful for your research or development, please consider citing it:
 ```
 @inproceedings{lumetti2025accurate,
   title={Accurate 3D Medical Image Segmentation with Mambas},
@@ -29,7 +31,8 @@ import mamba_ssm
   booktitle={Proceedings of 2025 IEEE International Symposium on Biomedical Imaging (ISBI)},
   year={2025}
 }
-
+```
+```
 @article{lumetti2024taming,
   title={Taming Mambas for Voxel Level 3D Medical Image Segmentation},
   author={Lumetti, Luca and Pipoli, Vittorio and Marchesini, Kevin and Ficarra, Elisa and Grana, Costantino and Bolelli, Federico},
