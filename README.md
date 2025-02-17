@@ -1,8 +1,8 @@
 # Accurate Voxel Level 3D Medical Image Segmentation with Mambas - ISBI 2025
 
 Official repository for the paper "Accurate Voxel Level 3D Medical Image Segmentation with Mambas", accepted at 2025 IEEE International Symposium on Biomedical Imaging (ISBI 2025).
-[Paper ISBI 2025](https://iris.unimore.it/handle/11380/1367190)
-[Paper Arxiv version](https://arxiv.org/abs/2410.15496)
+[Paper ISBI 2025](https://iris.unimore.it/handle/11380/1367190).
+[Paper Arxiv version](https://arxiv.org/abs/2410.15496).
 
 ## Installation 
 
