@@ -6,11 +6,11 @@ This repository is a collection of mamba-based and U-shaped models tailored for 
 
 Requirements: `Ubuntu 20.04`, `CUDA 11.8`
 
-1. Create a virtual environment: `conda create -n umamba python=3.10 -y` and `conda activate umamba `
+1. Create a virtual environment: `conda create -n tamingmambas python=3.10 -y` and `conda activate tamingmambas `
 2. Install [Pytorch](https://pytorch.org/get-started/previous-versions/#linux-and-windows-4) 2.0.1: `pip install torch==2.0.1 torchvision==0.15.2 --index-url https://download.pytorch.org/whl/cu118`
 3. Install [Mamba](https://github.com/state-spaces/mamba): `pip install causal-conv1d>=1.2.0` and `pip install mamba-ssm --no-cache-dir`
 4. Download code: `git clone https://github.com/LucaLumetti/TamingMambas.git`
-5. `cd TamingMambas/umamba` and run `pip install -e .`
+5. `cd TamingMambas/tamingmambas ` and run `pip install -e .`
 
 
 Sanity check: Enter the Python command-line interface and run:
