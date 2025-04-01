@@ -4,16 +4,17 @@ from nnunetv2.utilities.plans_handling.plans_handler import ConfigurationManager
 import torch
 from torch import nn
 from torch.optim import AdamW
+from nnunetv2.training.lr_scheduler.polylr import PolyLRScheduler
 
 from nnunetv2.nets.vmamba.seg_vmamba import get_seg_vmamba_from_plans
 
 
-class nnUNetTrainerVMamba(nnUNetTrainer):
+class nnUNetTrainerVMamba_onlyMirror01(nnUNetTrainer):
     def __init__(self, plans: dict, configuration: str, fold: int, dataset_json: dict, unpack_dataset: bool = True,
                  device: torch.device = torch.device('cuda'), debug=False):
         super().__init__(plans, configuration, fold, dataset_json, unpack_dataset, device)
-        self.initial_lr = 1e-4
-        self.num_epochs = 300
+        self.initial_lr = 5e-4
+        self.num_epochs = 150
         self.weight_decay = 0.05
         self.enable_deep_supervision = False
 
@@ -27,12 +28,13 @@ class nnUNetTrainerVMamba(nnUNetTrainer):
             weight_decay=self.weight_decay,
             amsgrad=False)
 
-        lr_scheduler = CosineAnnealingLR(
+        '''lr_scheduler = CosineAnnealingLR(
             optimizer=optimizer,
             T_max=100,
             eta_min=5e-6,
             last_epoch=-1
-        )
+        )'''
+        lr_scheduler = PolyLRScheduler(optimizer, self.initial_lr, self.num_epochs)
         return optimizer, lr_scheduler
 
     @staticmethod
@@ -44,14 +46,26 @@ class nnUNetTrainerVMamba(nnUNetTrainer):
 
         if len(configuration_manager.patch_size) == 2:
             model = get_seg_vmamba_from_plans(plans_manager, dataset_json, configuration_manager,
-                                          num_input_channels, deep_supervision=enable_deep_supervision)
+                                              num_input_channels, deep_supervision=enable_deep_supervision)
         elif len(configuration_manager.patch_size) == 3:
             raise NotImplementedError("Only 2D models are supported")
         else:
             raise NotImplementedError("Only 2D models are supported")
 
-        
         print("VMamba: {}".format(model))
 
         return model
+
+
+    def configure_rotation_dummyDA_mirroring_and_inital_patch_size(self):
+        rotation_for_DA, do_dummy_2d_data_aug, initial_patch_size, mirror_axes = \
+            super().configure_rotation_dummyDA_mirroring_and_inital_patch_size()
+        patch_size = self.configuration_manager.patch_size
+        dim = len(patch_size)
+        if dim == 2:
+            mirror_axes = (0, )
+        else:
+            mirror_axes = (0, 1)
+        self.inference_allowed_mirroring_axes = mirror_axes
+        return rotation_for_DA, do_dummy_2d_data_aug, initial_patch_size, mirror_axes
 

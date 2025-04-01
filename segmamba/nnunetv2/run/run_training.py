@@ -272,20 +272,6 @@ def run_training_entry():
     if args.debug:
         os.environ['WANDB_DISABLED'] = 'true'
 
-    additional_suffix = ""
-    if args.configuration == '2d' and args.tr == "":
-        additional_suffix = "_2d"
-
-    run = wandb.init(
-        project="MambaSurvey",
-        name=f'Dataset{int(args.dataset_name_or_id):03d}_{args.tr}{additional_suffix}_Fold{args.fold}', 
-        entity="maxillo",
-        config=args,
-        id=f'Dataset{int(args.dataset_name_or_id):03d}_{args.tr}{additional_suffix}_Fold{args.fold}', 
-        resume=f'allow',
-        tags=[socket.gethostname()]
-    )
-
     run_training(args.dataset_name_or_id, args.configuration, args.fold, args.tr, args.p, args.pretrained_weights,
                  args.num_gpus, args.use_compressed, args.npz, args.c, args.val, args.disable_checkpointing, args.val_best,
                  device=device, debug=args.debug)

@@ -183,12 +183,11 @@ class ResidualMambaEncoder(nn.Module):
         if self.stem is not None:
             x = self.stem(x)
         ret = []
-        #for s in self.stages:
+
         for s in range(len(self.stages)):
-            #x = s(x)
             x = self.stages[s](x)
-            x = self.mamba_layers[s](x)
-            ret.append(x)
+            latent_skip = self.mamba_layers[s](x)
+            ret.append(latent_skip)
         if self.return_skips:
             return ret
         else:

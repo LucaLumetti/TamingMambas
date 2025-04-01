@@ -41,11 +41,11 @@ def test(model, fold):
     if model == "":
         infer_path = f'inferTs'
     else:
-        infer_path = f'inferTs_{model}'
+        infer_path = f'inferTs_{model}_{fold}'
 
     label_list = sorted(glob.glob(os.path.join(nnUNet_raw, DATASET, 'labelsTs', '*nii.gz')))
-    infer_list = sorted(glob.glob(os.path.join(nnUNet_raw, DATASET, infer_path, fold, '*nii.gz')))
-    print(os.path.join(nnUNet_raw, DATASET, infer_path, fold, '*nii.gz'))
+    infer_list = sorted(glob.glob(os.path.join(nnUNet_raw, DATASET, infer_path, '*nii.gz')))
+    print(os.path.join(nnUNet_raw, DATASET, infer_path, '*nii.gz'))
     print(f'Found {len(label_list)} labels and {len(infer_list)} gts')
     print("loading success...")
 
@@ -67,7 +67,7 @@ def test(model, fold):
     hd_aorta=[]
     hd_pancreas=[]
 
-    file=os.path.join(nnUNet_raw, DATASET, infer_path, fold)
+    file=os.path.join(nnUNet_raw, DATASET, infer_path)
     fw = open(file+'/dice_pre.txt', 'a')
     
     for label_path,infer_path in tqdm(zip(label_list,infer_list), total=len(label_list)):

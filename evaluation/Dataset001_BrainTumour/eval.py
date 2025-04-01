@@ -45,11 +45,11 @@ def test(model, fold):
     if model == "":
         infer_path = f'inferTs'
     else:
-        infer_path = f'inferTs_{model}'
+        infer_path = f'inferTs_{model}_{fold}'
 
     label_list=sorted(glob.glob(os.path.join(nnUNet_raw, DATASET, 'labelsTs', '*nii.gz')))
-    infer_list=sorted(glob.glob(os.path.join(nnUNet_raw, DATASET, infer_path, fold, '*nii.gz')))
-    print(os.path.join(nnUNet_raw, DATASET, infer_path, fold, '*nii.gz'))
+    infer_list=sorted(glob.glob(os.path.join(nnUNet_raw, DATASET, infer_path, '*nii.gz')))
+    print(os.path.join(nnUNet_raw, DATASET, infer_path))
     print(f'Found {len(label_list)} labels and {len(infer_list)} gts')
     print("loading success...")
     Dice_et=[]
@@ -59,7 +59,7 @@ def test(model, fold):
     HD_et=[]
     HD_tc=[]
     HD_wt=[]
-    file=os.path.join(nnUNet_raw, DATASET, infer_path, fold)
+    file=os.path.join(nnUNet_raw, DATASET, infer_path)
     fw = open(file+'/dice_pre.txt', 'a')
 
     for label_path,infer_path in tqdm(zip(label_list,infer_list)):
@@ -108,7 +108,7 @@ def test(model, fold):
         'Test/HD95_ET': avg_hd[0],
         'Test/HD95_TC': avg_hd[1],
         'Test/HD95_WT': avg_hd[2],
-        'Test/Epoch': 299
+        'Test/Epoch': 999
     })
     
     fw.write('Dice_et'+str(np.mean(Dice_et))+' '+'\n')

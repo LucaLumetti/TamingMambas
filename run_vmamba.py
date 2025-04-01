@@ -14,7 +14,7 @@ if subprocess.call("command -v nnUNetv2_train > /dev/null 2>&1", shell=True) != 
     print("nnUNetv2_train not found, please activate the environment")
     sys.exit(1)
 
-ailb_cluster = ["aimagelab-srv-10", "ajeje", "carabbaggio", "ailb-login-01", "ailb-login-02", "aimagelab-srv-00", "lurcanio"]
+ailb_cluster = ["aimagelab-srv-10", "ajeje", "carabbaggio", "ailb-login-01", "ailb-login-02", "ailb-login-03", "aimagelab-srv-00", "lurcanio"]
 
 # Parse command-line arguments
 parser = argparse.ArgumentParser()
@@ -58,15 +58,19 @@ if dataset_dir_name is None:
     print(f'I cannot find the dataset folder. I looked for "Dataset{int(args.dataset):03d}*" inside {raws_path}\nFolders: {datasets}')
     sys.exit(1)
 
-imagesTs = os.path.join(raws_path, dataset_dir_name, 'imagesTs')
-inferTs = os.path.join(raws_path, dataset_dir_name, f'inferTs_{args.model}')
+#imagesTs = os.path.join(raws_path, dataset_dir_name, 'imagesTs')
+imagesTs = '/work/grana_maxillo/Mamba3DMedModels/data/nnUNet_raw/Dataset001_BrainTumour/imagesTs'
+inferTs = os.path.join(raws_path, dataset_dir_name, f'inferTs_{args.model}_{args.fold}')
 config_results = os.path.join(results_path, dataset_dir_name, subfolder_name, f'fold_{args.fold}')
 checkpoint_final_path = os.path.join(config_results, 'checkpoint_final.pth')
 
+print(config_results)
+
 continue_training = ""
-if os.path.exists(config_results) or True:
+if os.path.exists(config_results):
     continue_training = "--c"
 
+print(f'Continue: {continue_training}')
 if current_hostname in ailb_cluster:
     # Configuration specific to AImageLab cluster
     print(f"Detected AImageLab Cluster, please press Ctrl+C if I'm wrong. Running sbatch in {SLEEP_SECONDS} seconds")
@@ -77,7 +81,7 @@ if current_hostname in ailb_cluster:
     slurm_gres = "gpu:1"
     if args.boost:
         slurm_partition = "boost_usr_prod"
-        slurm_time = "12:00:00"
+        slurm_time = "24:00:00"
 else:
     # Configuration specific to Aries cluster
     print(f"Detected Aries Cluster, please press Ctrl+C if I'm wrong. Running sbatch in {SLEEP_SECONDS} seconds")
@@ -107,7 +111,7 @@ with open(sbatch_file, 'w') as f:
     f.write(f"#SBATCH --output=./slurm_out/{job_name}.out\n")
     f.write(f"#SBATCH --error=./slurm_out/{job_name}.err\n")
     f.write(f"#SBATCH --time={slurm_time}\n")
-    f.write(f"#SBATCH --mem=48G\n")
+    f.write(f"#SBATCH --mem=80G\n")
     f.write(f"#SBATCH --cpus-per-task=8\n")
     f.write(f"#SBATCH --gres={slurm_gres}\n")
     f.write(f"#SBATCH --partition={slurm_partition}\n")
@@ -115,9 +119,10 @@ with open(sbatch_file, 'w') as f:
     f.write(f"#SBATCH --signal=B:SIGUSR1@10\n")
 
     if current_hostname in ailb_cluster and args.boost:
-        f.write("#SBATCH --constraint=gpu_A40_48G\n")
+        pass
+        # f.write("#SBATCH --constraint=gpu_A40_48G|\n")
     if current_hostname in ailb_cluster and args.high:
-        f.write("#SBATCH --constraint=\"gpu_RTX6000_24G|gpu_RTXA5000_24G\" ")
+        f.write("#SBATCH --constraint=\"gpu_A40_48G|gpu_RTX6000_24G|gpu_RTXA5000_24G\" ")
     if current_hostname in ailb_cluster and args.lurcanio:
         f.write("#SBATCH --constraint=\"gpu_2080Ti_11G\" ")
 
@@ -161,4 +166,3 @@ else:
     print(f"Submitted sbatch file {sbatch_file}")
     subprocess.call(f"squeue --me", shell=True)
     subprocess.call(f"squeue --partition=ice4hpc", shell=True)
-

@@ -24,6 +24,7 @@ class nnUNetTrainerSwinUMambaD(nnUNetTrainer):
         self.weight_decay = 5e-2
         self.enable_deep_supervision = True
         self.freeze_encoder_epochs = 10
+        self.num_epochs = 300
 
     @staticmethod
     def build_network_architecture(

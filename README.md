@@ -1,8 +1,6 @@
-# Accurate Voxel Level 3D Medical Image Segmentation with Mambas - ISBI 2025
+# Mamba 3D Medical Image Segmentation
+This repository is a collection of mamba-based and U-shaped models tailored for the segmentation of medical images. It provides a collections of state-of-the-art models we used to compare with for different related publications.
 
-Official repository for the paper "Accurate Voxel Level 3D Medical Image Segmentation with Mambas", accepted at 2025 IEEE International Symposium on Biomedical Imaging (ISBI 2025).
-[Paper ISBI 2025](https://iris.unimore.it/handle/11380/1367190).
-[Paper Arxiv version](https://arxiv.org/abs/2410.15496).
 
 ## Installation 
 
@@ -26,6 +24,8 @@ If you face problems with Mamba or causal-conv1d, try to install them manually.
 
 ## Cite Us
 If you find this project useful for your research or development, please consider citing it:
+
+[Accurate 3D Medical Image Segmentation with Mambas](https://iris.unimore.it/handle/11380/1367190).
 ```
 @inproceedings{lumetti2025accurate,
   title={Accurate 3D Medical Image Segmentation with Mambas},
@@ -34,6 +34,8 @@ If you find this project useful for your research or development, please conside
   year={2025}
 }
 ```
+
+[Taming Mambas for Voxel Level 3D Medical Image Segmentation](https://arxiv.org/abs/2410.15496).
 ```
 @article{lumetti2024taming,
   title={Taming Mambas for Voxel Level 3D Medical Image Segmentation},

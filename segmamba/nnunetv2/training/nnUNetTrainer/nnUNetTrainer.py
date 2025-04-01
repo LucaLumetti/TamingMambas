@@ -844,14 +844,13 @@ class nnUNetTrainer(object):
 
         wandb_name_and_id = f'{dataset_name}_{trainer_name}_{is_2d_or_3d}D_Fold{fold}'
         run = wandb.init(
-            #project="test",
-            #name=wandb_name_and_id,
-            #entity="test",
-            #id=wandb_name_and_id,
-            #resume="allow",
-            #tags=[socket.gethostname()],
-            #settings=wandb.Settings(_service_wait=900)
-            mode="disabled"
+            project="MambaWACV",
+            name=wandb_name_and_id,
+            entity="maxillo",
+            id=wandb_name_and_id,
+            resume="allow",
+            tags=[socket.gethostname()],
+            settings=wandb.Settings(_service_wait=900)
         )
         wandb.watch(self.network, log_freq=1000)
 

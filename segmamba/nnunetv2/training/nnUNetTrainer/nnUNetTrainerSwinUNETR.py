@@ -6,6 +6,7 @@ import torch
 from torch.optim import AdamW
 from torch.optim.lr_scheduler import CosineAnnealingLR
 from torch import nn
+from calflops import calculate_flops
 
 from monai.networks.nets import SwinUNETR
 
@@ -14,7 +15,7 @@ class nnUNetTrainerSwinUNETR(nnUNetTrainerNoDeepSupervision):
     Swin-UNETR default configuration
     """
     def __init__(self, plans: dict, configuration: str, fold: int, dataset_json: dict, unpack_dataset: bool = True,
-                 device: torch.device = torch.device('cuda')):
+                 device: torch.device = torch.device('cuda'), debug=False):
         super().__init__(plans, configuration, fold, dataset_json, unpack_dataset, device)
         original_patch_size = self.configuration_manager.patch_size
         new_patch_size = [-1] * len(original_patch_size)
@@ -59,6 +60,28 @@ class nnUNetTrainerSwinUNETR(nnUNetTrainerNoDeepSupervision):
             depths = (2, 2, 2, 2),
             feature_size = 48
         )
+
+        input_brain = torch.rand((2, 4, 128, 128, 128))
+        # input_acdc = torch.rand((4, 1, 14, 256, 224))
+
+        total_params = sum(
+            param.numel() for param in model.parameters()
+        )
+        print("UMambaBot Params: {}".format(total_params))
+
+        # flops = FlopCountAnalysis(model, input_shape_brain)
+        # print("GFlops {}".format(flops.total() / 1e9))
+
+        # model = model.to("cuda")
+        args = [input_brain.to("cuda")]
+        flops, macs, params = calculate_flops(model=model,
+                                              # input_shape=tuple(input_brain.shape),
+                                              args=args,
+                                              output_as_string=True,
+                                              output_precision=4)
+        print("UMbambaBot Brain Tumor FLOPs:%s   MACs:%s   Params:%s \n" % (flops, macs, params))
+
+        time.sleep(60)
 
         return model
     

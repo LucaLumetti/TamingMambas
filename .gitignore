@@ -1,10 +1,18 @@
+CoTr
+rotate*
+run_inference_S*.py
+assets
+convert*.py
 bash.sh
+fix_permission*.sh
+resample*
 .idea
 .vscode
 wandb
 slurm_out
 sbatch_files
 data/
+slurm-*.out
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
