@@ -1,0 +1,122 @@
+[
+    {
+        "train": [
+            "abdomen_002",
+            "abdomen_003",
+            "abdomen_004",
+            "abdomen_005",
+            "abdomen_006",
+            "abdomen_007",
+            "abdomen_008",
+            "abdomen_009",
+            "abdomen_010",
+            "abdomen_023",
+            "abdomen_024",
+            "abdomen_025",
+            "abdomen_027",
+            "abdomen_028"
+        ],
+        "val": [
+            "abdomen_001",
+            "abdomen_021",
+            "abdomen_022",
+            "abdomen_026"
+        ]
+    },
+    {
+        "train": [
+            "abdomen_001",
+            "abdomen_002",
+            "abdomen_003",
+            "abdomen_005",
+            "abdomen_006",
+            "abdomen_007",
+            "abdomen_010",
+            "abdomen_021",
+            "abdomen_022",
+            "abdomen_024",
+            "abdomen_025",
+            "abdomen_026",
+            "abdomen_027",
+            "abdomen_028"
+        ],
+        "val": [
+            "abdomen_004",
+            "abdomen_008",
+            "abdomen_009",
+            "abdomen_023"
+        ]
+    },
+    {
+        "train": [
+            "abdomen_001",
+            "abdomen_002",
+            "abdomen_003",
+            "abdomen_004",
+            "abdomen_005",
+            "abdomen_006",
+            "abdomen_008",
+            "abdomen_009",
+            "abdomen_010",
+            "abdomen_021",
+            "abdomen_022",
+            "abdomen_023",
+            "abdomen_024",
+            "abdomen_026"
+        ],
+        "val": [
+            "abdomen_007",
+            "abdomen_025",
+            "abdomen_027",
+            "abdomen_028"
+        ]
+    },
+    {
+        "train": [
+            "abdomen_001",
+            "abdomen_003",
+            "abdomen_004",
+            "abdomen_006",
+            "abdomen_007",
+            "abdomen_008",
+            "abdomen_009",
+            "abdomen_021",
+            "abdomen_022",
+            "abdomen_023",
+            "abdomen_024",
+            "abdomen_025",
+            "abdomen_026",
+            "abdomen_027",
+            "abdomen_028"
+        ],
+        "val": [
+            "abdomen_002",
+            "abdomen_005",
+            "abdomen_010"
+        ]
+    },
+    {
+        "train": [
+            "abdomen_001",
+            "abdomen_002",
+            "abdomen_004",
+            "abdomen_005",
+            "abdomen_007",
+            "abdomen_008",
+            "abdomen_009",
+            "abdomen_010",
+            "abdomen_021",
+            "abdomen_022",
+            "abdomen_023",
+            "abdomen_025",
+            "abdomen_026",
+            "abdomen_027",
+            "abdomen_028"
+        ],
+        "val": [
+            "abdomen_003",
+            "abdomen_006",
+            "abdomen_024"
+        ]
+    }
+]

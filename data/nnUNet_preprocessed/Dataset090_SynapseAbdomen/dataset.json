@@ -1,0 +1,30 @@
+{
+    "name": "SynapseAbdomen",
+    "description": "Not provided",
+    "reference": "Not provided",
+    "licence": "Unknown",
+    "release": "Unknown",
+    "tensorImageSize": "3D",
+    "labels": {
+        "background": 0,
+        "spleen": 1,
+        "right kidney": 2,
+        "left kidney": 3,
+        "gallbladder": 4,
+        "esophagus": 5,
+        "liver": 6,
+        "stomach": 7,
+        "aorta": 8,
+        "inferior vena cava": 9,
+        "portal vein and splenic vein": 10,
+        "pancreas": 11,
+        "right adrenal gland": 12,
+        "left adrenal gland": 13
+    },
+    "numTraining": 18,
+    "numTest": 12,
+    "file_ending": ".nii.gz",
+    "channel_names": {
+        "0": "CT"
+    }
+}
